@@ -70,7 +70,7 @@ class Store {
   
   static displayBooks() {
     const books = Store.getBooks();
-    
+
     books.forEach(function(book) {
       const ui = new UI();
 
@@ -97,6 +97,21 @@ class Store {
 
     localStorage.setItem('books', JSON.stringify(books));
   };
+
+  //Check ISBN#
+  static checkIsbn(book) {
+    const storedBooks = Store.getBooks();
+  
+    const index = storedBooks.findIndex((b) => {
+      return book.isbn === b.isbn;
+    });
+    if(index > -1) {
+      const ui = new UI();
+      ui.showAlert(`Book with ISBN# ${book.isbn} already exist! Please, add another book`, 'error');
+      return false;
+    } 
+    return true;
+  };
 };
 
 // DOM load event
@@ -104,6 +119,8 @@ document.addEventListener('DOMContentLoaded', Store.displayBooks);
 
 //Event listener for 'add book'
 document.getElementById('book-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+
   //Get form values
   const title = document.getElementById('title').value,
         author = document.getElementById('author').value,
@@ -115,11 +132,16 @@ document.getElementById('book-form').addEventListener('submit', function(e) {
   //Instantiate UI
   const ui = new UI();
 
-  //Validate
+  //Validate fields
   if(title === '' || author === '' || isbn === ''){
     //Error alert
     ui.showAlert('Please, fill in all the fields', 'error');
   } else {
+
+    //Check ISBN#
+    if(!Store.checkIsbn(book)) {
+      return;
+    };
     //Add book to list
     ui.addBookToList(book);
 
@@ -132,12 +154,14 @@ document.getElementById('book-form').addEventListener('submit', function(e) {
     //Clear fields
     ui.clearFields();
   };
-
-  e.preventDefault();
 });
 
 //Event listener for 'delete book'
 document.getElementById('book-list').addEventListener('click', function(e){
+  if(e.target.className !== 'delete') {
+    return;
+  };
+  
   //Instantiate UI
   const ui = new UI();
 
